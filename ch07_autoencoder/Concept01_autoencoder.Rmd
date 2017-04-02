@@ -1,0 +1,14 @@
+---
+title: "Ch 07: Concept 01"
+output: github_document
+---
+
+
+
+# Autoencoder
+
+All we'll need is TensorFlow and NumPy:
+```{r}
+
+```
+

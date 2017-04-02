@@ -1,0 +1,120 @@
+---
+title: "Ch 04: Concept 04"
+output: github_document
+---
+
+# Softmax classification
+
+Import the usual libraries:
+```{r}
+library(tensorflow)
+```
+
+Generated some initial 2D data:
+```{r}
+learning_rate <- 0.01
+training_epochs <- 1000
+num_labels <- 3
+batch_size <- 100
+
+
+x1_label0 <- rnorm(100, 1, 1)
+x2_label0 <- rnorm(100, 1, 1)
+x1_label1 <- rnorm(100, 5, 1)
+x2_label1 <- rnorm(100, 4, 1)
+x1_label2 <- rnorm(100, 8, 1)
+x2_label2 <- rnorm(100, 0, 1)
+
+plot(x1_label0, x2_label0, col='red', pch='o', xlim=c(-2, 10), ylim=c(-2, 8))
+points(x1_label1, x2_label1, col='green', pch='x')
+points(x1_label2, x2_label2, col='blue', pch='_')
+```
+
+Define the labels and shuffle the data:
+```{r}
+xs_label0 <- cbind(x1_label0, x2_label0)
+xs_label1 <- cbind(x1_label1, x2_label1)
+xs_label2 <- cbind(x1_label2, x2_label2)
+
+xs <- rbind(xs_label0, xs_label1, xs_label2)
+labels <- rbind(matrix(rep(c(1,0,0), length(x1_label0)),ncol = 3, byrow = T),
+                matrix(rep(c(0,1,0), length(x1_label1)),ncol = 3, byrow = T),
+                matrix(rep(c(0,0,1), length(x1_label2)),ncol = 3, byrow = T))
+
+
+arr <- sample(1:nrow(xs), nrow(xs))
+xs <- xs[arr,]
+labels = labels[arr,]
+
+```
+
+
+
+
+
+We'll get back to this later, but the following are test inputs that we'll use to evaluate the model:
+
+```{r}
+
+test_x1_label0 <- rnorm(10, 1, 1)
+test_x2_label0 <- rnorm(10, 1, 1)
+test_x1_label1 <- rnorm(10, 5, 1)
+test_x2_label1 <- rnorm(10, 4, 1)
+test_x1_label2 <- rnorm(10, 8, 1)
+test_x2_label2 <- rnorm(10, 0, 1)
+
+
+test_xs_label0 <- cbind(test_x1_label0, test_x2_label0)
+test_xs_label1 <- cbind(test_x1_label1, test_x2_label1)
+test_xs_label2 <- cbind(test_x1_label2, test_x2_label2)
+
+test_xs <- rbind(test_xs_label0, test_xs_label1, test_xs_label2)
+test_labels <- rbind(matrix(rep(c(1,0,0), length(test_x1_label0)),ncol = 3, byrow = T),
+                     matrix(rep(c(0,1,0), length(test_x1_label1)),ncol = 3, byrow = T),
+                     matrix(rep(c(0,0,1), length(test_x1_label2)),ncol = 3, byrow = T))
+```
+
+
+
+Again, define the placeholders, variables, model, and cost function:
+```{r}
+train_size <- dim(xs)[1]
+num_features <- dim(xs)[2]
+
+X <- tf$placeholder("float", shape=list(NULL, num_features))
+Y <- tf$placeholder("float", shape=list(NULL, num_labels))
+
+W <- tf$Variable(tf$zeros(list(num_features, num_labels)))
+b <- tf$Variable(tf$zeros(c(num_labels)))
+y_model <- tf$nn$softmax(tf$add(tf$matmul(X, W), b))
+
+cost <- -tf$reduce_sum(Y * tf$log(y_model))
+train_op <- tf$train$GradientDescentOptimizer(learning_rate)$minimize(cost)
+
+correct_prediction <- tf$equal(tf$argmax(y_model, 1L), tf$argmax(Y, 1L))
+accuracy <- tf$reduce_mean(tf$cast(correct_prediction, "float"))
+```
+
+
+Train the softmax classification model:
+```{r}
+with(tf$Session() %as% sess,{
+    tf$global_variables_initializer()$run()
+
+    for(step in 1:(training_epochs * train_size %/% batch_size)){
+        offset <- (step * batch_size) %% train_size
+        batch_xs <- xs[offset:(offset + batch_size), ]
+        batch_labels <- labels[offset:(offset + batch_size),]
+        err_ <- sess$run(list(cost, train_op), feed_dict=dict(X= batch_xs, Y= batch_labels))
+        if(step %% 100 == 0)
+            print(paste(step, err_[[1]]))
+    }
+
+    W_val <- sess$run(W)
+    print(paste('w', W_val))
+    b_val <- sess$run(b)
+    print(paste('b', b_val))
+    print(paste("accuracy", accuracy$eval(feed_dict=dict(X= test_xs, Y= test_labels))))
+})
+```
+

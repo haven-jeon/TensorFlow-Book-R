@@ -1,0 +1,39 @@
+---
+title: "Ch 02: Concept 03"
+output: github_document
+---
+
+
+# Interactive session
+
+Interactive sessions are another way to use a session. Go ahead and define one:
+
+```{r}
+library(tensorflow)
+sess <- tf$InteractiveSession()
+```
+
+We have a matrix we want to invert:
+```{r}
+x <- tf$constant(matrix(c(1.0, 2.0), nrow=1, byrow=T))
+neg_op <- tf$negative(x)
+```
+
+Since we're using an interactive session, we can just call the eval() method on the op.
+```{r}
+result <- neg_op$eval()
+
+print(result)
+```
+
+
+That code's a little cleaner when using Jupyter notebooks (like this one).
+
+Don't forget to close the session:
+
+```{r}
+sess$close()
+```
+
+
+

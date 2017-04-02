@@ -1,0 +1,8 @@
+.idea
+*.pyc
+*~
+*.ckpt
+.Rproj.user
+*_cache
+cifar-10-batches-py
+saver

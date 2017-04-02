@@ -1,0 +1,77 @@
+---
+title: "Concept04_cifar"
+output: github_document
+---
+
+학습 정확도 추이 
+
+```{r}
+library(ggplot2)
+library(data.table)
+load("accuracy_list.RData")
+
+accuracy_dt <- rbindlist(accuracy_list)
+
+ggplot(accuracy_dt, aes(epoch, accu)) + geom_point() + 
+  geom_line(group=1) + ylab("accuracy") + geom_smooth()
+
+```
+
+
+
+학습된 가중치 시각화 
+
+```{r}
+source("Concept01_cifar.R")
+```
+
+
+```{r,cache=T}
+names_data_labels <- read_data('./cifar-10-batches-py')
+```
+
+커널 매트릭스 출력
+
+
+```{r}
+library(tensorflow)
+source("Concept03_cnn.R")
+source("Concept02_convolution.R")
+
+sess <- tf$InteractiveSession()
+
+saver$restore(sess, "saver/model_1000.chkp-1")
+
+w1_val <- sess$run(W1)
+
+print('weights1:')
+show_weights(w1_val)
+
+```
+
+
+
+```{r,fig.height=3, fig.width=5}
+img_idx <- 222
+names_data_labels$names[names_data_labels$labels[img_idx] + 1]
+raw_data <- names_data_labels$data[img_idx,]
+raw_img <- t(array(raw_data, dim = c(24,24)))
+
+par(mar = rep(1, 4))
+image(raw_img, axes = F, col = grey(seq(0, 1, length = 256)))
+```
+
+콘볼루션 적용 후 출력 이미지 
+
+```{r}
+
+conv_res <- sess$run(conv_out2, feed_dict=dict(x=matrix(names_data_labels$data[img_idx,], ncol=576)))
+
+print(dim(conv_res))
+show_conv_results(conv_res)
+
+sess$close()
+```
+
+
+

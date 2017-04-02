@@ -1,0 +1,144 @@
+---
+title: "Ch 05: Concept 01"
+output: github_document
+---
+
+
+
+
+We're going to need a Python library called the BregmanToolkit. It's available here: https://github.com/BinRoot/BregmanToolkit
+
+One way to install it is by downloading from the GitHub link above, and then running sudo python setup.py install in the downloaded directory.
+
+```{r}
+library(tensorflow)
+```
+
+
+```{r,echo=FALSE}
+library(tuneR)
+library(signal)
+library(magic)
+
+# from : https://github.com/andreasjansson/Key-detection-algorithms-in-R/blob/master/chromagram.R
+## Return a matrix where the rows are frames and the columns
+## represent bins in a 12 dimensional chroma vector
+chromagram.from.wave <- function(filename) {
+  fs <- 16384
+  ws <- 8192
+  time <- 300
+  bins <- 12 * 5 # must be an odd multiple of 12
+  
+  a1 <- readWave(filename)
+  print("done reading wave")
+  a1 <- decimate(a1, fs, ws, time)
+  print("done downsampling")
+  s <- Mod(specgram(a1@left - 127, ws, fs)$S)
+  s <- filter.specgram(s, ws, fs)
+  print("done specgram")
+  m <- spec2bins(s, fs, bins, ws)
+  m <- tune.bins(m)
+  print("done binning")
+  return(m)
+}
+
+```
+
+
+Define some hyper-parameters for clustering:
+
+
+```{r}
+k <- 2
+max_iterations <- 100
+```
+
+
+
+Select the location for the audio files:
+
+
+```{r}
+filenames <- tf$train$match_filenames_once("../audio_dataset/*.wav")
+count_num_files <- tf$size(filenames)
+filename_queue <- tf$train$string_input_producer(filenames)
+reader <- tf$WholeFileReader()
+filename_contents <- reader$read(filename_queue)
+
+chromo <- tf$placeholder(tf$float32)
+max_freqs <- tf$argmax(chromo, 0L)
+
+
+with(tf$Session() %as% sess, {
+  sess$run(tf$global_variables_initializer())
+  tf$local_variables_initializer()$run()
+  audio_file <- sess$run(filename_queue)
+  # f <- chromagram.from.wave(audio_file)
+   
+  })
+```
+
+
+Create a helper function to get the next audio file's Chromogram:
+
+```{r}
+chromagram.from.wave("../audio_dataset/cough_1.wav")
+
+get_next_chromogram <- function(sess){
+    audio_file <- sess$run(filename_contents[[1]])
+    f <- chromagram.from.wave(audio_file)
+    return(list(f, audio_file))
+}
+```
+
+
+And create a helper function to extract a feature vector from the Chromogram data:
+
+```{r}
+extract_feature_vector <- function(sess, chromo_data){
+    num_features_num_samples <- dim(chromo_data)
+    freq_vals <- sess$run(max_freqs, feed_dict=dict(chromo= chromo_data))
+    hist_bins <- hist(freq_vals, breaks=0:(num_features + 1), plot = F)
+    normalized_hist <- hist_bins$counts/num_samples
+    return(normalized_hist)
+}
+
+```
+
+Extract a dataset of feature vectors by calling our helper functions above:
+
+```{r}
+get_dataset <- function(sess){
+    num_files <- sess$run(count_num_files)
+    coord <- tf$train$Coordinator()
+    threads <- tf$train$start_queue_runners(coord=coord)
+    xs <- list()
+    names <- list()
+    for(i in 1:num_files){
+        chromo_data_filename <- get_next_chromogram(sess)
+
+        plt.subplot(1, 2, 1)
+        plt.imshow(chromo_data, cmap='Greys', interpolation='nearest')
+        plt.title('Visualization of Sound Spectrum')
+
+        plt.subplot(1, 2, 2)
+        freq_vals = sess.run(max_freqs, feed_dict={chromo: chromo_data})
+        plt.hist(freq_vals)
+        plt.title('Histogram of Notes')
+        plt.xlabel('Musical Note')
+        plt.ylabel('Count')
+        plt.savefig('{}.png'.format(filename))
+        plt.clf()
+
+        plt.clf()
+        names.append(filename)
+        x = extract_feature_vector(sess, chromo_data)
+        xs.append(x)
+    }
+    xs <- np$asmatrix(xs)
+    return(list(xs, names))
+}
+```
+
+
+

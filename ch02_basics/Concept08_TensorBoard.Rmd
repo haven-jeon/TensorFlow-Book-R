@@ -1,0 +1,68 @@
+---
+title: "Ch 02: Concept 08"
+output: github_document
+---
+
+
+# Using TensorBoard
+
+TensorBoard is a great way to visualize what's happening behind the code.
+
+In this example, we'll loop through some numbers to improve our guess of the average value. Then we can visualize the results on TensorBoard.
+
+Let's just set ourselves up with some data to work with:
+
+
+```{r}
+library(tensorflow)
+
+raw_data <- rnorm(n = 100, mean = 10, sd = 1)
+```
+
+The moving average is defined as follows:
+
+```{r}
+alpha <- tf$constant(0.05)
+curr_value <- tf$placeholder(tf$float32)
+prev_avg <- tf$Variable(0.0)
+
+update_avg <- tf$multiply(alpha , curr_value) + tf$multiply((1 - alpha),  prev_avg)
+```
+
+Here's what we care to visualize:
+
+```{r}
+avg_hist <- tf$summary$scalar("running_average", update_avg)
+value_hist <- tf$summary$scalar("incoming_values", curr_value)
+
+merged <- tf$summary$merge_all()
+writer <- tf$summary$FileWriter("./logs")
+```
+
+
+Time to compute the moving averages. We'll also run the merged op to track how the values change:
+
+
+```{r}
+init <- tf$global_variables_initializer()
+
+with(tf$Session() %as% sess,{
+    sess$run(init)
+    for(i in 1:length(raw_data)){
+        summary_str_curr_avg <- sess$run(list(merged, update_avg), feed_dict=dict(curr_value= raw_data[i]))
+        sess$run(tf$assign(prev_avg, summary_str_curr_avg[[2]]))
+        print(raw_data[i], summary_str_curr_avg[[2]])
+        writer$add_summary(summary_str_curr_avg[[1]], i)
+    }
+})
+
+
+```
+
+
+Check out the visualization by running TensorBoard from the terminal:
+
+$ tensorboard --logdir=path/to/logs
+
+
+

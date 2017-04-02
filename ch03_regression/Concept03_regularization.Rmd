@@ -1,0 +1,108 @@
+---
+title: "Ch 03: Concept 03"
+output: github_document
+---
+
+
+# Regularization
+
+Import the relevant libraries and initialize the hyper-parameters
+```{r}
+library(tensorflow)
+
+learning_rate <- 0.001
+training_epochs <- 1000
+reg_lambda <- 0.
+```
+
+
+create a helper method to split the dataset
+```{r}
+split_dataset <- function(x_dataset, y_dataset, ratio){
+  samp_idx <- sample(1:length(x_dataset), length(x_dataset) * ratio)
+  x_train <- x_dataset[samp_idx]
+  y_train <- y_dataset[samp_idx]
+  x_test <- x_dataset[-samp_idx]
+  y_test <- y_dataset[-samp_idx]
+  return(list(x_train=x_train, x_test=x_test, y_train=y_train, y_test=y_test))
+}
+```
+
+
+Create a fake dataset. y = x^2
+```{r}
+x_dataset <- seq.int(-1, 1, length.out = 101)
+
+num_coeffs <- 9
+y_dataset_params <- rep(0., num_coeffs) 
+y_dataset_params[3] <- 1
+y_dataset <- 0
+for(i in 1:num_coeffs){
+    y_dataset <- y_dataset +  y_dataset_params[i] * x_dataset^(i - 1)
+}
+y_dataset <-  y_dataset  + rnorm(length(y_dataset), mean = 0, sd=0.5) * 0.3
+```
+
+
+Split the dataset into 70% training and testing 30%
+```{r}
+train_test_sets <- split_dataset(x_dataset, y_dataset, 0.7)
+```
+
+
+Set up the input/output placeholders
+```{r}
+X <- tf$placeholder("float")
+Y <- tf$placeholder("float")
+```
+
+Define our model
+```{r}
+model <- function(X, w){
+    terms <- list()
+    for(i in 0:(num_coeffs-1)){
+        term <- tf$multiply(w[i], tf$pow(X, i))
+        terms[[i+1]] <- term 
+    }
+    return(tf$add_n(terms))
+}
+
+```
+
+
+Define the regularized cost function
+```{r}
+w <- tf$Variable(rep(0, num_coeffs), name="parameters")
+y_model <- model(X, w)
+cost <- tf$div(tf$add(tf$reduce_sum(tf$square(Y-y_model)),
+                     tf$multiply(reg_lambda, tf$reduce_sum(tf$square(w)))),
+              2*length(train_test_sets$x_train))
+train_op <- tf$train$GradientDescentOptimizer(learning_rate)$minimize(cost)
+```
+
+
+Set up the session
+```{r}
+sess <- tf$Session()
+init <- tf$global_variables_initializer()
+sess$run(init)
+```
+
+Try out various regularization parameters
+```{r}
+for(reg_lambda in seq.int(0,1,length.out = 100)){
+    for(epoch in 1:training_epochs){
+        sess$run(train_op, feed_dict=dict(X= train_test_sets$x_train, Y= train_test_sets$y_train))
+    }
+    final_cost <- sess$run(cost, feed_dict=dict(X= train_test_sets$x_test, Y=train_test_sets$y_test))
+    print(paste('reg lambda', reg_lambda))
+    print(paste('final cost', final_cost))
+}
+    
+sess$close()
+```
+
+
+
+
+

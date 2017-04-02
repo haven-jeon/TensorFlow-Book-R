@@ -1,0 +1,45 @@
+---
+title: "Ch 02: Concept 07"
+output: github_document
+---
+
+# Loading variables
+
+
+Concept 06 was about saving variables. This one's about loading what you saved. Start by creating an interactive session:
+
+```{r}
+library(tensorflow)
+sess <- tf$InteractiveSession()
+```
+
+Create a boolean vector called spikes of the same dimensions as before:
+
+```{r}
+spikes <- tf$Variable(rep(FALSE,8), name='spikes')
+```
+
+
+Restored the variable data from disk, serve warm, and enjoy:
+
+```{r}
+saver <- tf$train$Saver()
+
+res <- tryCatch({
+    saver$restore(sess, save_path = './spikes.ckpt')
+    print(spikes$eval())
+},error = function(e) {
+  print('file not found')
+})
+```
+
+
+
+file not found
+
+Show's over, goodnight:
+
+```{r}
+sess$close()
+```
+

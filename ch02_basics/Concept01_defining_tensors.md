@@ -1,0 +1,45 @@
+Ch 02: Concept01 Defining Tensors
+================
+
+Import TensorFlow and Numpy:
+
+``` r
+library(tensorflow)
+library(reticulate)
+use_python("/usr/bin/python3")
+
+np <- import("numpy",convert = F)
+py <- import_builtins()
+```
+
+Now, define a 2x2 matrix in different ways:
+
+``` r
+m1 <- matrix(c(1.0, 2.0, 
+               3.0, 4.0), byrow=T, nrow=2)
+
+m2 <- np$array(matrix(c(1.0,2.0,
+                        3.0,4.0), 
+                      byrow=2, nrow = 2),
+                      dtype=np$float32)
+
+m3 <- tf$constant(matrix(c(1.0, 2.0, 
+               3.0, 4.0), byrow=T, nrow=2))
+
+
+class(m1)
+```
+
+    ## [1] "matrix"
+
+``` r
+py$type(m2)
+```
+
+    ## <class 'numpy.ndarray'>
+
+``` r
+py$type(m3)
+```
+
+    ## <class 'tensorflow.python.framework.ops.Tensor'>
