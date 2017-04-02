@@ -1,9 +1,8 @@
 ---
-title: "README"
+title: "Machine Learning with TensorFlow(R version)"
 output: github_document
 ---
 
-# Machine Learning with TensorFlow(R version)
 
 
 [This](https://github.com/haven-jeon/TensorFlow-Book-R) is the unofficial code repository for [Machine Learning with TensorFlow](http://www.tensorflowbook.com/) with **R**.
@@ -17,7 +16,7 @@ This repository may contain different experiment R code.
 # TODO
 
 - 예제 코드 완성 
-- R Reference Class 기반 코드 재활용성 추구 
+- R Reference Class 기반 코드 재활용성 개선
 - GAN 모듈 추가
 
 
