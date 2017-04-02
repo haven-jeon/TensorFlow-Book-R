@@ -20,10 +20,10 @@ TODO
 Requirement
 ===========
 
--   [TensorFlow](https://www.tensorflow.org/) (&gt; 1.0)
--   [Python](https://www.python.org/) (&gt; 3.4)
--   [tensorflow](https://cran.r-project.org/package=tensorflow)
--   [reticulate](https://cran.r-project.org/package=reticulate)
+-   [TensorFlow](https://www.tensorflow.org/) (&gt;= 1.0)
+-   [Python](https://www.python.org/) (&gt;= 3.4)
+-   [tensorflow](https://cran.r-project.org/package=tensorflow) (&gt;= 0.7)
+-   [reticulate](https://cran.r-project.org/package=reticulate) (&gt;= 0.7)
 
 Summary
 =======

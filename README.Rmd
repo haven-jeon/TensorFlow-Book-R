@@ -23,10 +23,10 @@ This repository may contain different experiment R code.
 
 # Requirement 
 
-- [TensorFlow](https://www.tensorflow.org/) (> 1.0)
-- [Python](https://www.python.org/) (> 3.4)
-- [tensorflow](https://cran.r-project.org/package=tensorflow) 
-- [reticulate](https://cran.r-project.org/package=reticulate)
+- [TensorFlow](https://www.tensorflow.org/) (>= 1.0)
+- [Python](https://www.python.org/) (>= 3.4)
+- [tensorflow](https://cran.r-project.org/package=tensorflow) (>= 0.7) 
+- [reticulate](https://cran.r-project.org/package=reticulate) (>= 0.7)
 
 # Summary
 
