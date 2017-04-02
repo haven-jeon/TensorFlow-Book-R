@@ -68,13 +68,42 @@ image(raw_img, axes = F, col = grey(seq(0, 1, length = 256)))
 
 Define the TensorFlow ops:
 
+```
+If you like ascii art:
+
+    "VALID" = without padding:
+
+       inputs:         1  2  3  4  5  6  7  8  9  10 11 (12 13)
+                      |________________|                dropped
+                                     |_________________|
+
+    "SAME" = with zero padding:
+
+                   pad|                                      |pad
+       inputs:      0 |1  2  3  4  5  6  7  8  9  10 11 12 13|0  0
+                   |________________|
+                                  |_________________|
+                                                 |________________|
+
+In this example:
+
+    Input width = 13
+    Filter width = 6
+    Stride = 5
+
+Notes:
+
+    "VALID" only ever drops the right-most columns (or bottom-most rows).
+    "SAME" tries to pad evenly left and right, but if the amount of columns to be added is odd, it will add the extra column to the right, as is the case in this example (the same logic applies vertically: there may be an extra row of zeros at the bottom).
+```
+
 
 ```{r}
 x <- tf$reshape(raw_data, shape=list(-1L, 24L,24L,1L))
-# 
 W <- tf$Variable(tf$random_normal(list(5L, 5L, 1L, 32L)))
 b <- tf$Variable(tf$random_normal(list(32L)))
 
+# SAME은 입력 이미지 사이즈와 같은 출력을 만들기 위해서 적정량의 padding을 수행한다. 
 conv <- tf$nn$conv2d(x, W, strides = list(1L,1L,1L,1L), padding='SAME')
 conv_with_b <- tf$nn$bias_add(conv, b)
 conv_out <- tf$nn$relu(conv_with_b)
