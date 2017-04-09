@@ -26,29 +26,29 @@ Summary
 [Chapter 2](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch02_basics) - TensorFlow Basics
 --------------------------------------------------------------------------------------------------------
 
--   **Concept 1**: Defining tensors
--   **Concept 2**: Evaluating ops
--   **Concept 3**: Interactive session
--   **Concept 4**: Session loggings
--   **Concept 5**: Variables
--   **Concept 6**: Saving variables
--   **Concept 7**: Loading variables
--   **Concept 8**: TensorBoard
+-   **Concept 1**: [Defining tensors](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch02_basics/Concept01_defining_tensors.md)
+-   **Concept 2**: [Evaluating ops](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch02_basics/Concept02_evaluating_ops.md)
+-   **Concept 3**: [Interactive session](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch02_basics/Concept03_interactive_session.md)
+-   **Concept 4**: [Session loggings](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch02_basics/Concept04_session_logging.md)
+-   **Concept 5**: [Variables](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch02_basics/Concept05_variables.md)
+-   **Concept 6**: [Saving variables](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch02_basics/Concept06_saving_variables.md)
+-   **Concept 7**: [Loading variables](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch02_basics/Concept07_loading_variables.md)
+-   **Concept 8**: [TensorBoard](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch02_basics/Concept08_TensorBoard.md)
 
 [Chapter 3](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch03_regression) - Regression
 -----------------------------------------------------------------------------------------------------
 
--   **Concept 1**: Linear regression
--   **Concept 2**: Polynomial regression
--   **Concept 3**: Regularization
+-   **Concept 1**: [Linear regression](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch03_regression/Concept01_linear_regression.md)
+-   **Concept 2**: [Polynomial regression](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch03_regression/Concept02_poly_regression.md)
+-   **Concept 3**: [Regularization](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch03_regression/Concept03_regularization.md)
 
 [Chapter 4](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch04_classification) - Classification
 -------------------------------------------------------------------------------------------------------------
 
--   **Concept 1**: Linear regression for classification
--   **Concept 2**: Logistic regression
--   **Concept 3**: 2D Logistic regression
--   **Concept 4**: Softmax classification
+-   **Concept 1**: [Linear regression for classification](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch04_classification/Concept01_linear_regression_classification.md)
+-   **Concept 2**: [Logistic regression](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch04_classification/Concept02_logistic.md)
+-   **Concept 3**: [2D Logistic regression](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch04_classification/Concept03_logistic2d.md)
+-   **Concept 4**: [Softmax classification](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch04_classification/Concept04_softmax.md)
 
 [Chapter 5](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch05_clustering) - Clustering (*working*)
 -----------------------------------------------------------------------------------------------------------------
@@ -60,15 +60,15 @@ Summary
 [Chapter 6](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch06_hmm) - Hidden markov models
 --------------------------------------------------------------------------------------------------------
 
--   **Concept 1**: Forward algorithm
--   **Concept 2**: Viterbi decode
+-   **Concept 1**: [Forward algorithm](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch06_hmm/Concept01_forward.md)
+-   **Concept 2**: [Viterbi decode](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch06_hmm/Concept02_hmm.md)
 
-[Chapter 7](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch07_autoencoder) - Autoencoders (*working*)
---------------------------------------------------------------------------------------------------------------------
+[Chapter 7](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch07_autoencoder) - Autoencoders
+--------------------------------------------------------------------------------------------------------
 
--   **Concept 1**: Autoencoder
--   **Concept 2**: Applying an autoencoder to images
--   **Concept 3**: Denoising autoencoder
+-   **Concept 1**: [Autoencoder](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch07_autoencoder/Concept01_autoencoder.md)
+-   **Concept 2**: [Applying an autoencoder to images](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch07_autoencoder/Concept02_autoencoder_with_imgs.md)
+-   **Concept 3**: [Denoising autoencoder](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch07_autoencoder/Concept03_denoising.md)
 
 [Chapter 8](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch08_rl) - Reinforcement learning (*working*)
 ---------------------------------------------------------------------------------------------------------------------
@@ -78,10 +78,10 @@ Summary
 [Chapter 9](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch09_cnn) - Convolutional Neural Networks
 -----------------------------------------------------------------------------------------------------------------
 
--   **Concept 1**: Using CIFAR-10 dataset
--   **Concept 2**: Convolutions
--   **Concept 3**: Convolutional neural network
--   **Concept 4**: Convolutional neural network model debugging(2), **Newly added**
+-   **Concept 1**: [Using CIFAR-10 dataset](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch09_cnn/Concept01_cifar.md)
+-   **Concept 2**: [Convolutions](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch09_cnn/Concept02_convolution.md)
+-   **Concept 3**: [Convolutional neural network](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch09_cnn/Concept03_cnn.md)
+-   **Concept 4**: [Convolutional neural network model debugging(2)](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch09_cnn/Concept04_cifar.md), **Newly added**
 
 [Chapter 10](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch10_rnn) - Recurrent Neural Network(*working*)
 ------------------------------------------------------------------------------------------------------------------------
