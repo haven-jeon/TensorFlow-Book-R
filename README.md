@@ -3,16 +3,14 @@ Machine Learning with TensorFlow(R version)
 
 [This](https://github.com/haven-jeon/TensorFlow-Book-R) is the unofficial code repository for [Machine Learning with TensorFlow](http://www.tensorflowbook.com/) with **R**.
 
-This repository may contain different experiment R code.
-
-이 저장소는 R 텐서플로기반 텐서플로 모형작성 연습을 하기 위한 곳입니다. R만의 장점을 가질수 있는 부분이 있음을 개인적으로 코드작성을 통해 알아기기 위한 목적으로 작성되었으며, 책의 코드에서 부분적으로 개선되거나 실험된 코드/메모가 포함될 수 있음을 알려드립니다.(예: [CNN model view](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch09_cnn/Concept04_cifar.md) )
+This repository is for practicing (R tensorflow)\[<https://cran.r-project.org/package=tensorflow>\] modeling exercises. I'm personally writing this code for me to know that there are some areas where you can get the benefits of R, and that the code in the book may contain partially improved or experimented code. (example: [CNN model view](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch09_cnn/Concept04_cifar.md) )
 
 TODO
 ====
 
--   예제 코드 완성
--   R Reference Class 기반 코드 재활용성 개선
--   GAN 모듈 추가
+-   make full boook example code with R.
+-   make use of `R Reference Class` for code reusablilty.
+-   adding GAN code.
 
 Requirement
 ===========
