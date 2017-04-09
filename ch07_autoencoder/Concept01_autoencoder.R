@@ -1,31 +1,14 @@
----
-title: "Ch 07: Concept 01"
-output: github_document
----
-
-
-
-# Autoencoder
-
-All we'll need is TensorFlow and NumPy:
-```{r}
+## ------------------------------------------------------------------------
 library(tensorflow)
-```
 
-Instead of feeding all the training data to the training op, we will feed data in small batches:
-
-```{r}
+## ------------------------------------------------------------------------
 get_batch <- function(X, size){
   a <- sample(1:nrow(X), size)
   return(X[a,])
 }
 
-```
 
-
-Define the autoencoder class:
-
-```{r}
+## ------------------------------------------------------------------------
 
 
 Autoencoder <- setRefClass("Autoencoder",
@@ -133,6 +116,4 @@ Autoencoder <- setRefClass("Autoencoder",
       return(img)
       }
     ))
-```
-
 
