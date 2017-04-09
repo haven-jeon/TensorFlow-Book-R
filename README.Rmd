@@ -13,7 +13,7 @@ This repository is for practicing [R tensorflow](https://cran.r-project.org/pack
 
 # TODO
 
-- make full boook example code with R.
+- make full book example code with R.
 - make use of `R Reference Class` for code reusablilty.  
 - adding GAN code.
 
