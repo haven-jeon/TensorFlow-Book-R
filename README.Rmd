@@ -8,7 +8,7 @@ output: github_document
 [This](https://github.com/haven-jeon/TensorFlow-Book-R) is the unofficial code repository for [Machine Learning with TensorFlow](http://www.tensorflowbook.com/) with **R**.
 
 
-This repository is for practicing (R tensorflow)[https://cran.r-project.org/package=tensorflow] modeling exercises. I'm personally writing this code for me to know that there are some areas where you can get the benefits of R, and that the code in the book may contain partially improved or experimented code. (example: [CNN model view](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch09_cnn/Concept04_cifar.md) ) 
+This repository is for practicing [R tensorflow](https://cran.r-project.org/package=tensorflow) modeling exercises. I'm personally writing this code for me to know that there are some areas where you can get the benefits of R, and that the code in the book may contain partially improved or experimented code. (example: [CNN model view](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch09_cnn/Concept04_cifar.md) ) 
 
 
 # TODO
