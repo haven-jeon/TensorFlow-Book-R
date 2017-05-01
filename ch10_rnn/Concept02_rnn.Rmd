@@ -27,8 +27,8 @@ SeriesPredictor <- setRefClass("SeriesPredictor",
         # Weight variables and input placeholders
         .self$W_out <- tf$Variable(tf$random_normal(list(.self$hidden_dim, 1L)), name='W_out')
         .self$b_out <- tf$Variable(tf$random_normal(list(1L)), name='b_out')
-        x <<- tf$placeholder(tf$float32, list(NULL, .self$seq_size, .self$input_dim ),name='x')
-        y <<- tf$placeholder(tf$float32, list(NULL, .self$seq_size), name='y')
+        .self$x <- tf$placeholder(dtype=tf$float32, shape=list(NULL, .self$seq_size, .self$input_dim ))
+        .self$y <- tf$placeholder(dtype=tf$float32, shape=list(NULL, .self$seq_size))
         
         # Cost optimizer
         .self$cost <- tf$reduce_mean(tf$square(model() - .self$y))
@@ -36,8 +36,6 @@ SeriesPredictor <- setRefClass("SeriesPredictor",
 
         # Auxiliary ops
         .self$saver = tf$train$Saver()
-
-        
       },
       model=function(){
         #:param x: inputs of size [T, batch_size, input_size]
@@ -45,8 +43,13 @@ SeriesPredictor <- setRefClass("SeriesPredictor",
         #:param b: vector of fully-connected output layer biases
         cell <- tf$contrib$rnn$BasicLSTMCell(.self$hidden_dim)
         outputs_states <- tf$nn$dynamic_rnn(cell, .self$x, dtype=tf$float32)
-        num_examples <- tf$shape(.self$x)[1]
-        W_repeated <- tf$tile(tf$expand_dims(.self$W_out, 0L), list(num_examples, 1L, 1L))
+        
+        #not num_examples <- tf$shape(.self$x)[1]
+        num_examples <- tf$shape(.self$x)[0]
+        #expend : 10,1 -> 1,10,1 
+        #tile : 1,10,1 -> 3,10,1
+        W_repeated <- tf$tile(tf$expand_dims(.self$W_out, 0L), list(num_examples, 1L, 1L)) 
+        #3,4,10 x 3,10,1
         out <- tf$matmul(outputs_states[[1]], W_repeated) + .self$b_out
         out <- tf$squeeze(out)
         return(out)
@@ -77,22 +80,40 @@ SeriesPredictor <- setRefClass("SeriesPredictor",
     )
 ```
 
+Now, we'll train a series predictor. Let's say we have a sequence of numbers [a, b, c, d] that we want to transform into [a, a+b, b+c, c+d]. We'll give the RNN a couple examples in the training data. Let's see how well it learns this intended transformation:
 
 
 
 ```{r}
 predictor <- SeriesPredictor$new(input_dim=1, seq_size=4, hidden_dim=10)
-# 
-# train_x <- aperm(array(c(1,2,5,6,
-#                    5,7,7,8,
-#                    3,4,5,7),dim=c(4,3,1)),c(2,1,3))
-# 
-# 
-# train_y <- matrix(c(1,3, 7, 11,
-#                     5,12,14,15,
-#                     3,7, 9 ,12), nrow=3, byrow=T)
-# 
-# predictor$train(train_x, train_y)
 
+
+train_x <- aperm(array(c(1,2,5,6,
+                   5,7,7,8,
+                   3,4,5,7),dim=c(4,3,1)),c(2,1,3))
+
+
+train_y <- matrix(c(1,3, 7, 11,
+                    5,12,14,15,
+                    3,7, 9 ,12), nrow=3, byrow=T)
+
+predictor$train(train_x, train_y)
+
+test_x <- aperm(array(c(1,2,3,4,                         # 1,3,5,7
+                        4,5,6,7),dim=c(4,2,1)), c(2,1,3))# 4,9,11,13
+
+actual_y<- matrix(c(1,3,5,7,
+                    4,9,11,13), nrow=2, byrow=T)
+
+pred_y <- predictor$test(test_x)
+
+cat("\nLets run some tests!\n")
+
+for(i in 1:length(test_x)){
+        print(sprintf("When the input is %f",as.vector(test_x)[i]))
+        print(sprintf("The ground truth output should be %f", as.vector(actual_y)[i]))
+        print(sprintf("And the model thinks it is %f", as.vector(pred_y)[i]))
+        cat('\n')
+}
 ```
 

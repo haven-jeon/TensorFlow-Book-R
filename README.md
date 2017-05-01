@@ -86,6 +86,6 @@ Summary
 [Chapter 10](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch10_rnn) - Recurrent Neural Network(*working*)
 ------------------------------------------------------------------------------------------------------------------------
 
--   **Concept 1**: Loading timeseries data
--   **Concept 2**: Recurrent neural networks
+-   **Concept 1**: [Loading timeseries data](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch10_rnn/Concept01_timeseries_data.md)
+-   **Concept 2**: [Recurrent neural networks](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch10_rnn/Concept02_rnn.md)
 -   **Concept 3**: Applying RNN to real-world data for timeseries prediction
