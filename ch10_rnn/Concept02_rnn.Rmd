@@ -1,0 +1,98 @@
+---
+title: 'Ch 10: Concept 02'
+output: github_document
+---
+
+# Recurrent Neural Network
+
+Import the relevant libraries:
+
+```{r}
+library(tensorflow)
+```
+
+Define the RNN model:
+
+```{r}
+SeriesPredictor <- setRefClass("SeriesPredictor",
+    fields=c('input_dim', 'seq_size', 'hidden_dim', 'W_out', 'b_out',
+             'x','y', 'cost', 'train_op', 'saver'),
+    methods=list(
+      initialize=function(input_dim, seq_size, hidden_dim=10){
+        # Hyperparameters
+        .self$input_dim <- as.integer(input_dim)
+        .self$seq_size <- as.integer(seq_size)
+        .self$hidden_dim <- as.integer(hidden_dim)
+        
+        # Weight variables and input placeholders
+        .self$W_out <- tf$Variable(tf$random_normal(list(.self$hidden_dim, 1L)), name='W_out')
+        .self$b_out <- tf$Variable(tf$random_normal(list(1L)), name='b_out')
+        x <<- tf$placeholder(tf$float32, list(NULL, .self$seq_size, .self$input_dim ),name='x')
+        y <<- tf$placeholder(tf$float32, list(NULL, .self$seq_size), name='y')
+        
+        # Cost optimizer
+        .self$cost <- tf$reduce_mean(tf$square(model() - .self$y))
+        .self$train_op <- tf$train$AdamOptimizer()$minimize(.self$cost)
+
+        # Auxiliary ops
+        .self$saver = tf$train$Saver()
+
+        
+      },
+      model=function(){
+        #:param x: inputs of size [T, batch_size, input_size]
+        #:param W: matrix of fully-connected output layer weights
+        #:param b: vector of fully-connected output layer biases
+        cell <- tf$contrib$rnn$BasicLSTMCell(.self$hidden_dim)
+        outputs_states <- tf$nn$dynamic_rnn(cell, .self$x, dtype=tf$float32)
+        num_examples <- tf$shape(.self$x)[1]
+        W_repeated <- tf$tile(tf$expand_dims(.self$W_out, 0L), list(num_examples, 1L, 1L))
+        out <- tf$matmul(outputs_states[[1]], W_repeated) + .self$b_out
+        out <- tf$squeeze(out)
+        return(out)
+      },
+      train=function(train_x, train_y){
+         with(tf$Session() %as% sess, {
+           tf$get_variable_scope()$reuse_variables()
+           sess$run(tf$global_variables_initializer())
+           for(i in 1:1000){
+             mse_ <- sess$run(list(.self$train_op, .self$cost), feed_dict=dict(x= train_x, y= train_y))
+             if(i %% 100){
+               print(paste(i, mse_[[2]]))
+             }
+             save_path <- .self$saver$save(sess, 'model.ckpt')
+             print(sprintf('Model saved to %s',save_path))
+           }
+         })
+      },
+      test=function(test_x){
+         with(tf$Session() %as% sess, {
+           tf$get_variable_scope()$reuse_variables()
+           .self$saver$restore(sess, './model.ckpt')
+           output <- sess$run(.self$model(), feed_dict=dict(x= test_x))
+         })
+        return(output)
+      }
+      )
+    )
+```
+
+
+
+
+```{r}
+predictor <- SeriesPredictor$new(input_dim=1, seq_size=4, hidden_dim=10)
+# 
+# train_x <- aperm(array(c(1,2,5,6,
+#                    5,7,7,8,
+#                    3,4,5,7),dim=c(4,3,1)),c(2,1,3))
+# 
+# 
+# train_y <- matrix(c(1,3, 7, 11,
+#                     5,12,14,15,
+#                     3,7, 9 ,12), nrow=3, byrow=T)
+# 
+# predictor$train(train_x, train_y)
+
+```
+
