@@ -63,7 +63,7 @@ SeriesPredictor <- setRefClass("SeriesPredictor",
              if(i %% 100){
                print(paste(i, mse_[[2]]))
              }
-             save_path <- .self$saver$save(sess, 'model.ckpt')
+             save_path <- .self$saver$save(sess, './model.ckpt')
              print(sprintf('Model saved to %s',save_path))
            }
          })

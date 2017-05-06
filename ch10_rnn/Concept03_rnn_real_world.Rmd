@@ -1,0 +1,10 @@
+---
+title: 'Ch 10: Concept 03'
+output: output: github_document
+---
+
+# Recurrent Neural Network on real data
+
+
+
+
