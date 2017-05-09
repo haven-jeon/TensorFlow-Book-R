@@ -1,14 +1,10 @@
----
-title: 'Ch 10: Concept 03'
-output: github_document
----
+Ch 10: Concept 03
+================
 
-# Recurrent Neural Network on real data
+Recurrent Neural Network on real data
+=====================================
 
-
-
-
-```r
+``` r
 library(tensorflow)
 library(ggplot2)
 
@@ -90,8 +86,7 @@ SeriesPredictor <- setRefClass("SeriesPredictor",
 )
 ```
 
-
-```r
+``` r
 plot_results <- function(train_x, predictions, actual){
   time_series_data <- rbind(
     data.frame(seq=1:length(train_x), data=train_x, cls='training data'),
@@ -105,12 +100,7 @@ plot_results <- function(train_x, predictions, actual){
 }
 ```
 
-
-
-
-
-
-```r
+``` r
 source("Concept01_timeseries_data.R")
 
 seq_size <- 5L
@@ -144,17 +134,16 @@ test_y <- matrix(test_y, ncol=5 , byrow=T)
 predictor$train(train_x, train_y, test_x, test_y)
 ```
 
-```
-## [1] "step: 0\t\ttrain err: 0.333255\t\ttest err: 2.061763"
-## [1] "step: 100\t\ttrain err: 0.046845\t\ttest err: 0.230314"
-## [1] "step: 200\t\ttrain err: 0.042519\t\ttest err: 0.208237"
-## [1] "step: 300\t\ttrain err: 0.041013\t\ttest err: 0.289200"
-## [1] "step: 400\t\ttrain err: 0.039974\t\ttest err: 0.364414"
-## [1] "step: 500\t\ttrain err: 0.039086\t\ttest err: 0.345542"
-## [1] "Model saved to ./model.ckpt"
-```
+    ## [1] "step: 0\t\ttrain err: 1.428332\t\ttest err: 1.378821"
+    ## [1] "step: 100\t\ttrain err: 0.074086\t\ttest err: 0.300300"
+    ## [1] "step: 200\t\ttrain err: 0.047249\t\ttest err: 0.266840"
+    ## [1] "step: 300\t\ttrain err: 0.044048\t\ttest err: 0.238786"
+    ## [1] "step: 400\t\ttrain err: 0.042877\t\ttest err: 0.240852"
+    ## [1] "step: 500\t\ttrain err: 0.041986\t\ttest err: 0.256876"
+    ## [1] "step: 600\t\ttrain err: 0.041209\t\ttest err: 0.280992"
+    ## [1] "Model saved to ./model.ckpt"
 
-```r
+``` r
 with(tf$Session() %as% sess, {
     predicted_vals <- predictor$test(sess, test_x)
     print(sprintf('predicted_vals, %s', dim(predicted_vals)))
@@ -172,9 +161,6 @@ with(tf$Session() %as% sess, {
 })
 ```
 
-```
-## [1] "predicted_vals, 24" "predicted_vals, 5"
-```
+    ## [1] "predicted_vals, 24" "predicted_vals, 5"
 
-![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.svg)![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-2.svg)
-
+![](Concept03_rnn_real_world_files/figure-markdown_github/unnamed-chunk-3-1.png)![](Concept03_rnn_real_world_files/figure-markdown_github/unnamed-chunk-3-2.png)
