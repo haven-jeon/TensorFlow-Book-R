@@ -83,9 +83,9 @@ Summary
 -   **Concept 3**: [Convolutional neural network](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch09_cnn/Concept03_cnn.md)
 -   **Concept 4**: [Convolutional neural network model debugging(2)](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch09_cnn/Concept04_cifar.md), **Newly added**
 
-[Chapter 10](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch10_rnn) - Recurrent Neural Network(*working*)
-------------------------------------------------------------------------------------------------------------------------
+[Chapter 10](https://github.com/haven-jeon/TensorFlow-Book-R/tree/master/ch10_rnn) - Recurrent Neural Network
+-------------------------------------------------------------------------------------------------------------
 
 -   **Concept 1**: [Loading timeseries data](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch10_rnn/Concept01_timeseries_data.md)
 -   **Concept 2**: [Recurrent neural networks](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch10_rnn/Concept02_rnn.md)
--   **Concept 3**: Applying RNN to real-world data for timeseries prediction
+-   **Concept 3**: [Applying RNN to real-world data for timeseries prediction](https://github.com/haven-jeon/TensorFlow-Book-R/blob/master/ch10_rnn/Concept03_rnn_real_world.md)
