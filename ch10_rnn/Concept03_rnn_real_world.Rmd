@@ -29,7 +29,7 @@ SeriesPredictor <- setRefClass("SeriesPredictor",
         
         # Cost optimizer
         .self$cost <- tf$reduce_mean(tf$square(model() - .self$y))
-        .self$train_op <- tf$train$AdamOptimizer()$minimize(.self$cost)
+        .self$train_op <- tf$train$AdamOptimizer(learning_rate=0.01)$minimize(.self$cost)
 
         # Auxiliary ops
         .self$saver = tf$train$Saver()
@@ -65,7 +65,7 @@ SeriesPredictor <- setRefClass("SeriesPredictor",
             train_err <- NULL_train_err[[2]]
             if(step %% 100 == 0){
               test_err <- sess$run(.self$cost, feed_dict=dict(x= test_x, y= test_y))
-              print(sprintf('step: %d\t\ttrain err: %f\t\ttest err: %f',step, train_err, test_err))
+              cat(sprintf('step: %d\t\ttrain err: %f\t\ttest err: %f\n',step, train_err, test_err))
               if(test_err < min_test_err){
                 min_test_err <- test_err
                 patience <- max_patience

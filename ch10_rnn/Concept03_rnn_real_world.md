@@ -26,7 +26,7 @@ SeriesPredictor <- setRefClass("SeriesPredictor",
         
         # Cost optimizer
         .self$cost <- tf$reduce_mean(tf$square(model() - .self$y))
-        .self$train_op <- tf$train$AdamOptimizer()$minimize(.self$cost)
+        .self$train_op <- tf$train$AdamOptimizer(learning_rate=0.01)$minimize(.self$cost)
 
         # Auxiliary ops
         .self$saver = tf$train$Saver()
@@ -62,7 +62,7 @@ SeriesPredictor <- setRefClass("SeriesPredictor",
             train_err <- NULL_train_err[[2]]
             if(step %% 100 == 0){
               test_err <- sess$run(.self$cost, feed_dict=dict(x= test_x, y= test_y))
-              print(sprintf('step: %d\t\ttrain err: %f\t\ttest err: %f',step, train_err, test_err))
+              cat(sprintf('step: %d\t\ttrain err: %f\t\ttest err: %f\n',step, train_err, test_err))
               if(test_err < min_test_err){
                 min_test_err <- test_err
                 patience <- max_patience
@@ -134,13 +134,14 @@ test_y <- matrix(test_y, ncol=5 , byrow=T)
 predictor$train(train_x, train_y, test_x, test_y)
 ```
 
-    ## [1] "step: 0\t\ttrain err: 1.428332\t\ttest err: 1.378821"
-    ## [1] "step: 100\t\ttrain err: 0.074086\t\ttest err: 0.300300"
-    ## [1] "step: 200\t\ttrain err: 0.047249\t\ttest err: 0.266840"
-    ## [1] "step: 300\t\ttrain err: 0.044048\t\ttest err: 0.238786"
-    ## [1] "step: 400\t\ttrain err: 0.042877\t\ttest err: 0.240852"
-    ## [1] "step: 500\t\ttrain err: 0.041986\t\ttest err: 0.256876"
-    ## [1] "step: 600\t\ttrain err: 0.041209\t\ttest err: 0.280992"
+    ## step: 0      train err: 0.820042     test err: 1.690292
+    ## step: 100        train err: 0.041629     test err: 0.253392
+    ## step: 200        train err: 0.040549     test err: 0.245927
+    ## step: 300        train err: 0.039487     test err: 0.248768
+    ## step: 400        train err: 0.038130     test err: 0.211382
+    ## step: 500        train err: 0.036092     test err: 0.278987
+    ## step: 600        train err: 0.033883     test err: 0.289871
+    ## step: 700        train err: 0.032755     test err: 0.219035
     ## [1] "Model saved to ./model.ckpt"
 
 ``` r
