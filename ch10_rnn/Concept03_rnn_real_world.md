@@ -7,7 +7,8 @@ output: github_document
 
 
 
-```{r}
+
+```r
 library(tensorflow)
 library(ggplot2)
 
@@ -89,7 +90,8 @@ SeriesPredictor <- setRefClass("SeriesPredictor",
 )
 ```
 
-```{r}
+
+```r
 plot_results <- function(train_x, predictions, actual){
   time_series_data <- rbind(
     data.frame(seq=1:length(train_x), data=train_x, cls='training data'),
@@ -107,7 +109,8 @@ plot_results <- function(train_x, predictions, actual){
 
 
 
-```{r}
+
+```r
 source("Concept01_timeseries_data.R")
 
 seq_size <- 5L
@@ -139,7 +142,19 @@ test_y <- matrix(test_y, ncol=5 , byrow=T)
 
 
 predictor$train(train_x, train_y, test_x, test_y)
+```
 
+```
+## [1] "step: 0\t\ttrain err: 0.333255\t\ttest err: 2.061763"
+## [1] "step: 100\t\ttrain err: 0.046845\t\ttest err: 0.230314"
+## [1] "step: 200\t\ttrain err: 0.042519\t\ttest err: 0.208237"
+## [1] "step: 300\t\ttrain err: 0.041013\t\ttest err: 0.289200"
+## [1] "step: 400\t\ttrain err: 0.039974\t\ttest err: 0.364414"
+## [1] "step: 500\t\ttrain err: 0.039086\t\ttest err: 0.345542"
+## [1] "Model saved to ./model.ckpt"
+```
+
+```r
 with(tf$Session() %as% sess, {
     predicted_vals <- predictor$test(sess, test_x)
     print(sprintf('predicted_vals, %s', dim(predicted_vals)))
@@ -155,6 +170,11 @@ with(tf$Session() %as% sess, {
     }
     plot_results(train_data, predicted_vals, actual_vals)
 })
+```
 
 ```
+## [1] "predicted_vals, 24" "predicted_vals, 5"
+```
+
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.svg)![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-2.svg)
 
