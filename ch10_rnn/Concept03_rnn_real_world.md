@@ -134,14 +134,11 @@ test_y <- matrix(test_y, ncol=5 , byrow=T)
 predictor$train(train_x, train_y, test_x, test_y)
 ```
 
-    ## step: 0      train err: 0.820042     test err: 1.690292
-    ## step: 100        train err: 0.041629     test err: 0.253392
-    ## step: 200        train err: 0.040549     test err: 0.245927
-    ## step: 300        train err: 0.039487     test err: 0.248768
-    ## step: 400        train err: 0.038130     test err: 0.211382
-    ## step: 500        train err: 0.036092     test err: 0.278987
-    ## step: 600        train err: 0.033883     test err: 0.289871
-    ## step: 700        train err: 0.032755     test err: 0.219035
+    ## step: 0      train err: 0.763628     test err: 1.973412
+    ## step: 100        train err: 0.041158     test err: 0.303015
+    ## step: 200        train err: 0.038779     test err: 0.340862
+    ## step: 300        train err: 0.035553     test err: 0.350543
+    ## step: 400        train err: 0.033465     test err: 0.325148
     ## [1] "Model saved to ./model.ckpt"
 
 ``` r
