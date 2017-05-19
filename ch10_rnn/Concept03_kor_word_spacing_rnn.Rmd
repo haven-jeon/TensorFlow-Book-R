@@ -11,6 +11,7 @@ output: github_document
 library(tensorflow)
 library(hashmap)
 
+
 makeCorpus <- function(str){
   strv <- strsplit(str,split="")[[1]]
   lenstrv <- length(strv)
@@ -248,8 +249,4 @@ wsp$predict(sent_mat_x, length(sent), 1)
 
 plot(loss_v)
 ```
-
-
-
-
 
