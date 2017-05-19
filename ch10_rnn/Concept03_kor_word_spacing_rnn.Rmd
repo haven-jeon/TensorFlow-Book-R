@@ -1,0 +1,255 @@
+---
+title: 'Ch 10: Concept 04'
+output: github_document
+---
+
+
+# Korean word spacing RNN 
+
+```{r}
+#https://github.com/hunkim/DeepLearningZeroToAll/blob/master/lab-12-2-char-seq-rnn.py
+library(tensorflow)
+library(hashmap)
+
+makeCorpus <- function(str){
+  strv <- strsplit(str,split="")[[1]]
+  lenstrv <- length(strv)
+  spacev <- vector(mode="numeric",length=lenstrv)
+  charv  <- vector(mode="character",length=lenstrv)
+  vidx <- 1
+  for(i in 1:lenstrv){
+    if(strv[i] == " ") {
+      next
+    }
+    if(i + 1 <= lenstrv && strv[i + 1] == " "){
+      #spacev <- append(spacev, "1")
+      spacev[vidx] <- 1
+    }else{
+      if(i == lenstrv){
+        spacev[vidx] <- 1
+      }else{
+        spacev[vidx] <- 0
+      }
+    }
+    charv[vidx] <- strv[i]
+    vidx <- vidx + 1
+  }
+  charv_f <- Filter(function(x){x!=''},charv)
+  return(list(status=spacev[1:length(charv_f)],char=charv_f,nchar=length(charv_f)))
+}
+
+
+sents <-readLines('input.txt',encoding='UTF-8')
+
+#3어절씩 문장을 만든다. 
+
+sents_eojeol <- strsplit(sents, split = ' ')
+
+embeding <- lapply(sents_eojeol, function(x){
+  v <- c()
+  k <- 3
+  if(length(x) < 3) return(paste(x, collapse = " "))
+  
+  for(i in 1:length(x)){
+    if((i + k - 1) > length(x)) break
+    v <- c(v, paste(x[i:(i + k - 1)], collapse = " "))
+  }
+  return(v)
+  })
+
+embeding <- unlist(embeding)
+
+coding  <- lapply(embeding, makeCorpus)
+charsents <- lapply(coding, function(x){x$char})
+uniq_chars <- unique(unlist(charsents))
+
+chmap <- hashmap(uniq_chars, 1:length(uniq_chars))
+
+max_seq_len <- max(unlist(lapply(coding, function(x){x$nchar})))
+
+#make sentence coding 
+seq_mat_x <- matrix(0, ncol=max_seq_len, nrow=length(embeding))
+
+for(i in 1:length(embeding)){
+  sent <- coding[[i]]$char
+  for(j in 1:length(sent)){
+    seq_mat_x[i,j] <- chmap[[sent[j]]]
+  }
+}
+
+seq_mat_y <- matrix(0, ncol=max_seq_len, nrow=length(embeding))
+loss_mask <-matrix(0, ncol=max_seq_len, nrow=length(embeding))
+
+for(i in 1:length(embeding)){
+  sent <- coding[[i]]$status
+  for(j in 1:length(sent)){
+    seq_mat_y[i,j] <- sent[j] 
+    loss_mask[i,j] <- 1
+  }
+}
+
+
+len_list <-  unlist(lapply(coding, function(x){x$nchar}))
+
+
+```
+
+
+```{r}
+
+WordSpacing <- setRefClass("WordSpacing",
+    fields=c('char_dic_size', 'n_neurons', 'num_classes', 'batch_size', 
+             'sequence_length', 'word_spacing_graph',
+             'config_proto', 'mem_fraction', 'x', 'y', 
+             'sent_len', 'loss', 'prediction', 'optimizer',
+             'init', 'saver', 'global_step', 'num_out_classes','weight_mask'),
+    methods=list(
+      initialize=function(char_dic_size, n_neurons, num_classes, num_out_classes, sequence_length,mem_fraction=0.999,global_step = 1L){
+        .self$char_dic_size <- as.integer(char_dic_size)
+        .self$n_neurons <- as.integer(n_neurons)
+        .self$num_classes <- as.integer(num_classes)
+        .self$num_out_classes <- as.integer(num_out_classes)
+        .self$sequence_length <- as.integer(sequence_length)
+        .self$global_step <- as.integer(global_step)
+        
+        
+        gpu_options <- tf$GPUOptions(per_process_gpu_memory_fraction=mem_fraction)
+        .self$config_proto <- tf$ConfigProto(allow_soft_placement=T,log_device_placement=F, gpu_options=gpu_options)
+        
+        .self$word_spacing_graph <- tf$Graph()
+        
+        with(.self$word_spacing_graph$as_default(), {
+          with(tf$name_scope("kor_word_spacing"),{
+            with(tf$device("/gpu:1"), {
+              #variable
+              .self$x <- tf$placeholder(tf$int32, list(NULL, .self$sequence_length))  # X data
+              .self$y <- tf$placeholder(tf$int32, list(NULL, .self$sequence_length))  # Y label
+              .self$weight_mask <- tf$placeholder(tf$float32, list(NULL, .self$sequence_length)) # weight for loss
+              .self$sent_len <- tf$placeholder(tf$int32, list(NULL))  # Y label
+              .self$batch_size <-  tf$placeholder(tf$int32)
+              
+              x_one_hot <- tf$one_hot(x, num_classes)
+              
+              #define rnn cell 
+              cell <- tf$contrib$rnn$BasicLSTMCell(
+                  num_units=.self$n_neurons, activation=tf$nn$relu)
+              #multi_layer_cell <- tf$contrib$rnn$MultiRNNCell(list(cell, cell))
+              #initial_state <- multi_layer_cell$zero_state(.self$batch_size, tf$float32)
+              initial_state <- cell$zero_state(.self$batch_size, tf$float32)
+              outputs_states <- tf$nn$dynamic_rnn(cell = cell,inputs = x_one_hot,sequence_length=sent_len,
+                                  initial_state = initial_state, dtype=tf$float32)
+              
+              
+              
+              #fully connected layer
+              # x_fc <- tf$reshape(outputs_states[[1]], list(-1L, .self$n_neurons))
+              # fc_w <- tf$get_variable("fc_w", list(.self$n_neurons,
+              #                                      .self$num_out_classes),
+              #                         initializer=tf$contrib$layers$xavier_initializer())
+              # fc_b <- tf$get_variable("fc_b", list(.self$num_out_classes),
+              #                         initializer=tf$random_normal_initializer())
+              # fc1 <-  tf$matmul(x_fc, fc_w) + fc_b
+              fc1 <- tf$contrib$layers$fully_connected(outputs_states[[1]], .self$num_out_classes, activation_fn=NULL, weights_initializer=tf$contrib$layers$xavier_initializer())
+  
+              # reshape out for sequence_loss
+              outputs <- tf$reshape(fc1, list(-1L, .self$sequence_length,
+                                              .self$num_out_classes))
+              #weights <- tf$ones_like(.self$x, dtype = tf$float32)
+              
+              sequence_loss <- tf$contrib$seq2seq$sequence_loss(
+                  logits=outputs, targets=y, weights=.self$weight_mask)
+              .self$loss <- tf$reduce_mean(sequence_loss)
+              .self$optimizer <- tf$train$AdamOptimizer(learning_rate=0.001)$minimize(loss)
+              
+              .self$prediction <- tf$argmax(outputs, axis=2L)
+              # Define a saver op
+              .self$init <- tf$global_variables_initializer()
+              .self$saver <- tf$train$Saver(max_to_keep=0L)
+            })
+          })
+          
+        })
+      }, 
+      train = function(seq_mat_x, seq_mat_y, sent_len_x, loss_mask, batch_n, epoch=10L){
+        loss_v <- c()
+        with(tf$Session(config=.self$config_proto, graph=.self$word_spacing_graph) %as% sess, {
+          sess$run(init)
+          for(i in 1:epoch){
+            #shufle 
+            rnd_idx <- sample(1:nrow(seq_mat_x), nrow(seq_mat_x))
+            seq_mat_x_ <- seq_mat_x[rnd_idx,]
+            seq_mat_y_ <- seq_mat_y[rnd_idx,]
+            sent_len_x_ <- sent_len_x[rnd_idx]
+            loss_mask_ <- loss_mask[rnd_idx,]
+            
+            j <- 0
+            for(k in seq(1, nrow(seq_mat_x), batch_n)){
+              if( k + batch_n - 1 > nrow(seq_mat_x)){
+                bat_size <- nrow(seq_mat_x)  + 1 - k
+              }else{
+                bat_size <- batch_n
+              }
+              l <- sess$run(list(.self$loss, .self$optimizer), feed_dict=
+                                dict(x=matrix(seq_mat_x_[k:(k + bat_size - 1),], byrow=T, nrow=bat_size), 
+                                y= matrix(seq_mat_y_[k:(k + bat_size - 1),], byrow=T, nrow=bat_size), 
+                                sent_len= sent_len_x_[k:(k + bat_size - 1)],
+                                batch_size=as.integer(bat_size),
+                                weight_mask=matrix(loss_mask_[k:(k + bat_size - 1),], byrow=T, nrow=bat_size)
+                                ))
+              j <- j + 1
+              if(j %% 100 == 0){
+                print(sprintf("%d:%d loss : %f", i, j, l[[1]]))
+                loss_v <- c(loss_v, l[[1]])
+              }
+            }
+            save_path <- .self$saver$save(sess=sess, save_path = sprintf("model/model_%d.chkp", i),
+                                    global_step =.self$global_step)
+            print(sprintf("Model saved in file: %s",  save_path))
+          }
+          result <- sess$run(.self$prediction, feed_dict=dict(x=matrix(seq_mat_x[1,], byrow=T, nrow=1), 
+                                                        sent_len=list(sent_len_x[1]),batch_size=1L))
+          print(result)
+        })
+        return(loss_v)
+      },
+      predict = function(sent_mat_x, sent_length, best_epoc, glob_step=1L){
+        with(tf$Session(config=.self$config_proto, graph=.self$word_spacing_graph) %as% sess, {
+          .self$saver$restore(sess, sprintf("model/model_%d.chkp-%d",best_epoc, glob_step))
+          preds <- sess$run(.self$prediction ,feed_dict=dict(x=sent_mat_x, sent_len=list(sent_length), batch_size=1L))
+        })
+      return(preds)
+    }
+))
+
+```
+
+
+```{r}
+wsp <- WordSpacing$new(char_dic_size=length(chmap$keys()), n_neurons=50L, num_out_classes=2L, 
+                       num_classes=as.integer(length(chmap$keys())), 
+                       sequence_length=max_seq_len, global_step = 1L)
+
+wsp$train(seq_mat_x, seq_mat_y, len_list,loss_mask, batch_n=200L, epoch = 10)
+
+test_sent <- "우리집에서가장먼학교가어디지?"
+
+makeCorpus(test_sent)
+
+sent_mat_x <- matrix(0, ncol=max_seq_len, nrow=1)
+
+
+sent <- makeCorpus(test_sent)$char
+for(j in 1:length(sent)){
+  sent_mat_x[1,j] <- chmap[[sent[j]]] 
+}
+
+
+wsp$predict(sent_mat_x, length(sent), 1)
+
+plot(loss_v)
+```
+
+
+
+
+
