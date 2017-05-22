@@ -10,7 +10,9 @@ output: github_document
 #https://github.com/hunkim/DeepLearningZeroToAll/blob/master/lab-12-2-char-seq-rnn.py
 library(tensorflow)
 library(hashmap)
-
+library(wordVectors)
+library(caret)
+library(stringr)
 
 makeCorpus <- function(str){
   strv <- strsplit(str,split="")[[1]]
@@ -23,7 +25,6 @@ makeCorpus <- function(str){
       next
     }
     if(i + 1 <= lenstrv && strv[i + 1] == " "){
-      #spacev <- append(spacev, "1")
       spacev[vidx] <- 1
     }else{
       if(i == lenstrv){
@@ -39,17 +40,19 @@ makeCorpus <- function(str){
   return(list(status=spacev[1:length(charv_f)],char=charv_f,nchar=length(charv_f)))
 }
 
-
+m <- read.vectors("char_input.bin")
 sents <-readLines('input.txt',encoding='UTF-8')
+
+
 
 #3어절씩 문장을 만든다. 
 
-sents_eojeol <- strsplit(sents, split = ' ')
+sents_eojeol <- str_split(sents, pattern = '[:blank:]')
 
 embeding <- lapply(sents_eojeol, function(x){
   v <- c()
-  k <- 3
-  if(length(x) < 3) return(paste(x, collapse = " "))
+  k <- 4
+  if(length(x) < k) return(paste(x, collapse = " "))
   
   for(i in 1:length(x)){
     if((i + k - 1) > length(x)) break
@@ -64,12 +67,12 @@ coding  <- lapply(embeding, makeCorpus)
 charsents <- lapply(coding, function(x){x$char})
 uniq_chars <- unique(unlist(charsents))
 
-chmap <- hashmap(uniq_chars, 1:length(uniq_chars))
-
 max_seq_len <- max(unlist(lapply(coding, function(x){x$nchar})))
 
 #make sentence coding 
 seq_mat_x <- matrix(0, ncol=max_seq_len, nrow=length(embeding))
+
+chmap <- hashmap(rownames(m), 0:(nrow(m)-1))
 
 for(i in 1:length(embeding)){
   sent <- coding[[i]]$char
@@ -77,6 +80,7 @@ for(i in 1:length(embeding)){
     seq_mat_x[i,j] <- chmap[[sent[j]]]
   }
 }
+
 
 seq_mat_y <- matrix(0, ncol=max_seq_len, nrow=length(embeding))
 loss_mask <-matrix(0, ncol=max_seq_len, nrow=length(embeding))
@@ -91,7 +95,7 @@ for(i in 1:length(embeding)){
 
 
 len_list <-  unlist(lapply(coding, function(x){x$nchar}))
-
+sent_chars <- lapply(coding, function(x){x$char})
 
 ```
 
@@ -103,15 +107,19 @@ WordSpacing <- setRefClass("WordSpacing",
              'sequence_length', 'word_spacing_graph',
              'config_proto', 'mem_fraction', 'x', 'y', 
              'sent_len', 'loss', 'prediction', 'optimizer',
-             'init', 'saver', 'global_step', 'num_out_classes','weight_mask'),
+             'init', 'saver', 'global_step', 'num_out_classes','weight_mask',
+             'c2v', 'is_training', 'embeddings'),
     methods=list(
-      initialize=function(char_dic_size, n_neurons, num_classes, num_out_classes, sequence_length,mem_fraction=0.999,global_step = 1L){
+      initialize=function(char_dic_size, n_neurons, num_classes, num_out_classes, sequence_length,c2v, mem_fraction=0.999,global_step = 1L){
         .self$char_dic_size <- as.integer(char_dic_size)
         .self$n_neurons <- as.integer(n_neurons)
         .self$num_classes <- as.integer(num_classes)
         .self$num_out_classes <- as.integer(num_out_classes)
         .self$sequence_length <- as.integer(sequence_length)
         .self$global_step <- as.integer(global_step)
+        .self$c2v <- c2v
+        .self$is_training <- FALSE
+        
         
         
         gpu_options <- tf$GPUOptions(per_process_gpu_memory_fraction=mem_fraction)
@@ -124,33 +132,37 @@ WordSpacing <- setRefClass("WordSpacing",
             with(tf$device("/gpu:1"), {
               #variable
               .self$x <- tf$placeholder(tf$int32, list(NULL, .self$sequence_length))  # X data
+              .self$embeddings <- tf$placeholder(tf$float32, list(.self$char_dic_size, .self$num_classes))
               .self$y <- tf$placeholder(tf$int32, list(NULL, .self$sequence_length))  # Y label
               .self$weight_mask <- tf$placeholder(tf$float32, list(NULL, .self$sequence_length)) # weight for loss
-              .self$sent_len <- tf$placeholder(tf$int32, list(NULL))  # Y label
+              .self$sent_len <- tf$placeholder(tf$int32, list(NULL))  
               .self$batch_size <-  tf$placeholder(tf$int32)
-              
-              x_one_hot <- tf$one_hot(x, num_classes)
+              x_emb <- tf$nn$embedding_lookup(.self$embeddings, .self$x)
+              #x_one_hot <- tf$one_hot(x, num_classes)
               
               #define rnn cell 
-              cell <- tf$contrib$rnn$BasicLSTMCell(
-                  num_units=.self$n_neurons, activation=tf$nn$relu)
-              #multi_layer_cell <- tf$contrib$rnn$MultiRNNCell(list(cell, cell))
-              #initial_state <- multi_layer_cell$zero_state(.self$batch_size, tf$float32)
-              initial_state <- cell$zero_state(.self$batch_size, tf$float32)
-              outputs_states <- tf$nn$dynamic_rnn(cell = cell,inputs = x_one_hot,sequence_length=sent_len,
-                                  initial_state = initial_state, dtype=tf$float32)
+              cell <- tf$contrib$rnn$GRUCell(num_units=.self$n_neurons)
+              # cell <- tf$contrib$rnn$LSTMCell(
+              #     num_units=.self$n_neurons, use_peepholes=T)
+              if(.self$is_training){
+                  cell <- tf$contrib$rnn$DropoutWrapper(cell, input_keep_prob=0.5)
+              }
+              #multi_layer_cell = tf$contrib$rnn$MultiRNNCell(list(cell, cell,cell))
+              #initial_state <- cell$zero_state(.self$batch_size, tf$float32)
+              outputs_states <- tf$nn$dynamic_rnn(cell = cell,inputs = x_emb, sequence_length=sent_len,
+                                  dtype=tf$float32)
               
               
               
               #fully connected layer
-              # x_fc <- tf$reshape(outputs_states[[1]], list(-1L, .self$n_neurons))
-              # fc_w <- tf$get_variable("fc_w", list(.self$n_neurons,
-              #                                      .self$num_out_classes),
-              #                         initializer=tf$contrib$layers$xavier_initializer())
-              # fc_b <- tf$get_variable("fc_b", list(.self$num_out_classes),
-              #                         initializer=tf$random_normal_initializer())
-              # fc1 <-  tf$matmul(x_fc, fc_w) + fc_b
-              fc1 <- tf$contrib$layers$fully_connected(outputs_states[[1]], .self$num_out_classes, activation_fn=NULL, weights_initializer=tf$contrib$layers$xavier_initializer())
+              x_fc <- tf$reshape(outputs_states[[1]], list(-1L, .self$n_neurons))
+              fc_w <- tf$get_variable("fc_w", list(.self$n_neurons,
+                                                   .self$num_out_classes),
+                                      initializer=tf$contrib$layers$xavier_initializer())
+              fc_b <- tf$get_variable("fc_b", list(.self$num_out_classes),
+                                      initializer=tf$random_normal_initializer())
+              fc1 <-  tf$matmul(x_fc, fc_w) + fc_b
+              # fc1 <- tf$contrib$layers$fully_connected(outputs_states[[1]], .self$num_out_classes, activation_fn=NULL, weights_initializer=tf$contrib$layers$xavier_initializer())
   
               # reshape out for sequence_loss
               outputs <- tf$reshape(fc1, list(-1L, .self$sequence_length,
@@ -171,13 +183,29 @@ WordSpacing <- setRefClass("WordSpacing",
           
         })
       }, 
+      make_batch=function(sents){
+        seq_mat_3x <- array(0, dim = c(length(sents), .self$sequence_length, ncol(c2v)))
+
+        for(i in 1:length(sents)){
+          sent <- sents[[i]]
+          for(j in 1:length(sent)){
+            v <- c2v[[sent[j]]]
+            if(is.na(v[,1])) v <- c2v[sample(nrow(c2v),1),]
+            seq_mat_3x[i,j,] <- v
+          }
+        }
+        return(seq_mat_3x)
+      },
+      
       train = function(seq_mat_x, seq_mat_y, sent_len_x, loss_mask, batch_n, epoch=10L){
         loss_v <- c()
+        .self$is_training <- TRUE
         with(tf$Session(config=.self$config_proto, graph=.self$word_spacing_graph) %as% sess, {
           sess$run(init)
           for(i in 1:epoch){
             #shufle 
             rnd_idx <- sample(1:nrow(seq_mat_x), nrow(seq_mat_x))
+            
             seq_mat_x_ <- seq_mat_x[rnd_idx,]
             seq_mat_y_ <- seq_mat_y[rnd_idx,]
             sent_len_x_ <- sent_len_x[rnd_idx]
@@ -190,30 +218,37 @@ WordSpacing <- setRefClass("WordSpacing",
               }else{
                 bat_size <- batch_n
               }
+              .self$c2v
               l <- sess$run(list(.self$loss, .self$optimizer), feed_dict=
-                                dict(x=matrix(seq_mat_x_[k:(k + bat_size - 1),], byrow=T, nrow=bat_size), 
-                                y= matrix(seq_mat_y_[k:(k + bat_size - 1),], byrow=T, nrow=bat_size), 
-                                sent_len= sent_len_x_[k:(k + bat_size - 1)],
-                                batch_size=as.integer(bat_size),
-                                weight_mask=matrix(loss_mask_[k:(k + bat_size - 1),], byrow=T, nrow=bat_size)
+                                dict(x=matrix(seq_mat_x_[k:(k + bat_size - 1),], byrow=T, nrow=bat_size),
+                                    embeddings=c2v, 
+                                    y= matrix(seq_mat_y_[k:(k + bat_size - 1),], byrow=T, nrow=bat_size), 
+                                    sent_len= sent_len_x_[k:(k + bat_size - 1)],
+                                    batch_size=as.integer(bat_size),
+                                    weight_mask=matrix(loss_mask_[k:(k + bat_size - 1),], byrow=T, nrow=bat_size)
                                 ))
               j <- j + 1
-              if(j %% 100 == 0){
+              if(j %% 300 == 0){
                 print(sprintf("%d:%d loss : %f", i, j, l[[1]]))
                 loss_v <- c(loss_v, l[[1]])
+                result <- sess$run(.self$prediction,
+                                   feed_dict=dict(x=seq_mat_test,embeddings=c2v,
+                                                    sent_len=list(12L),batch_size=1L))
+                print(result[1,1:12])
               }
             }
+            .self$is_training <- F
             save_path <- .self$saver$save(sess=sess, save_path = sprintf("model/model_%d.chkp", i),
                                     global_step =.self$global_step)
+            .self$is_training <- T
             print(sprintf("Model saved in file: %s",  save_path))
           }
-          result <- sess$run(.self$prediction, feed_dict=dict(x=matrix(seq_mat_x[1,], byrow=T, nrow=1), 
-                                                        sent_len=list(sent_len_x[1]),batch_size=1L))
-          print(result)
+          
         })
         return(loss_v)
       },
       predict = function(sent_mat_x, sent_length, best_epoc, glob_step=1L){
+        .self$is_training <- F
         with(tf$Session(config=.self$config_proto, graph=.self$word_spacing_graph) %as% sess, {
           .self$saver$restore(sess, sprintf("model/model_%d.chkp-%d",best_epoc, glob_step))
           preds <- sess$run(.self$prediction ,feed_dict=dict(x=sent_mat_x, sent_len=list(sent_length), batch_size=1L))
@@ -226,23 +261,37 @@ WordSpacing <- setRefClass("WordSpacing",
 
 
 ```{r}
-wsp <- WordSpacing$new(char_dic_size=length(chmap$keys()), n_neurons=50L, num_out_classes=2L, 
-                       num_classes=as.integer(length(chmap$keys())), 
-                       sequence_length=max_seq_len, global_step = 1L)
+wsp <- WordSpacing$new(char_dic_size=dim(m)[1], n_neurons=20L, num_out_classes=2L, 
+                       num_classes=200L, 
+                       sequence_length=max_seq_len, c2v=m, global_step = 1L)
 
-wsp$train(seq_mat_x, seq_mat_y, len_list,loss_mask, batch_n=200L, epoch = 10)
 
-test_sent <- "우리집에서가장먼학교가어디지?"
+tr_loss <- wsp$train(seq_mat_x, seq_mat_y, len_list,loss_mask, batch_n=300L, epoch = 33000)
+
+
+test_sent <- "아버지가방에들어가셨다."
+              
+seq_mat_test <- matrix(0, ncol=max_seq_len, nrow=1)
+
+chmap <- hashmap(rownames(m), 0:(nrow(m)-1))
+
+sent_t <- str_split(test_sent, pattern = '')[[1]]
+for(j in 1:length(sent_t))
+  seq_mat_test[1,j] <- chmap[[sent_t[j]]]
+
+
+
+
 
 makeCorpus(test_sent)
-
-sent_mat_x <- matrix(0, ncol=max_seq_len, nrow=1)
-
-
-sent <- makeCorpus(test_sent)$char
-for(j in 1:length(sent)){
-  sent_mat_x[1,j] <- chmap[[sent[j]]] 
-}
+# 
+# sent_mat_x <- matrix(0, ncol=max_seq_len, nrow=1)
+# 
+# 
+# sent <- makeCorpus(test_sent)$char
+# for(j in 1:length(sent)){
+#   sent_mat_x[1,j] <- chmap[[sent[j]]] 
+# }
 
 
 wsp$predict(sent_mat_x, length(sent), 1)
