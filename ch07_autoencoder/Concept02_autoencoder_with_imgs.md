@@ -88,16 +88,16 @@ ae <- Autoencoder$new(input_dim, hidden_dim)
 ae$train(horse_x)
 ```
 
-    ## [1] "epoch 50: loss = 46.522511"
-    ## [1] "epoch 100: loss = 47.680244"
-    ## [1] "epoch 150: loss = 48.945663"
-    ## [1] "epoch 200: loss = 58.313343"
-    ## [1] "epoch 250: loss = 50.077698"
-    ## [1] "epoch 300: loss = 54.402054"
-    ## [1] "epoch 350: loss = 51.897457"
-    ## [1] "epoch 400: loss = 47.022156"
-    ## [1] "epoch 450: loss = 51.340378"
-    ## [1] "epoch 500: loss = 57.876442"
+    ## [1] "epoch 50: loss = 46.674625"
+    ## [1] "epoch 100: loss = 46.550663"
+    ## [1] "epoch 150: loss = 50.245029"
+    ## [1] "epoch 200: loss = 57.250927"
+    ## [1] "epoch 250: loss = 50.494396"
+    ## [1] "epoch 300: loss = 53.319695"
+    ## [1] "epoch 350: loss = 51.553219"
+    ## [1] "epoch 400: loss = 45.833340"
+    ## [1] "epoch 450: loss = 51.136341"
+    ## [1] "epoch 500: loss = 55.668030"
 
     ## [1] "./model.ckpt"
 
@@ -112,8 +112,8 @@ encodings <- ae$classify(test_x, test_labels)
     ## [1] "data 50000" "data 1024" 
     ## [1] "reconstructed 50000" "reconstructed 1024" 
     ## [1] "loss length 50000"
-    ## [1] "horse 51.3009221892531"
-    ## [1] "not horse 50.9304309871452"
+    ## [1] "horse 51.5855043091544"
+    ## [1] "not horse 51.1346412026076"
 
 ``` r
 par(mfrow=c(10,2), mar = rep(1, 4))
